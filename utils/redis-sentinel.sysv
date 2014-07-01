@@ -16,6 +16,7 @@
 executable=/usr/sbin/redis-sentinel-tagged
 prog=$(basename $executable)
 lockfile=/var/lock/subsys/$prog
+pidfile=/var/run/redis/$prog.pid
 sentinel_user=redis
 sentinel_config=/etc/redis/sentinel/sentinel.conf
 
@@ -26,7 +27,7 @@ start() {
 
     # Start daemons.
     echo -n $"Starting ${executable}: "
-    daemon --user ${sentinel_user} $executable $sentinel_config
+    daemon --user ${sentinel_user} $executable $sentinel_config --pidfile $pidfile --daemonize yes
     RETVAL=$?
     echo
     [ $RETVAL -eq 0 ] && touch $lockfile
@@ -43,23 +44,33 @@ stop() {
     return $RETVAL
 }
 
+kstatus() {
+    status -p $pidfile $prog
+}
+
+kstatus_q() {
+    kstatus > /dev/null 2>&1
+}
+
 # See how we were called.
 case "$1" in
     start)
+        kstatus_q && exit 0
         start
         ;;
     stop)
+        kstatus_q || exit 0
         stop
         ;;
     status)
-        status $prog
+        kstatus
         ;;
     restart|force-reload)
         stop
         start
         ;;
     try-restart|condrestart)
-        if status $prog > /dev/null; then
+        if kstatus_q; then
             stop
             start
         fi

@@ -2,7 +2,7 @@
 Summary: redis-sentinel
 Name: redis-sentinel
 Version: 2.8.9.%{GitStamp}
-Release: 1tagged2
+Release: 1tagged3
 License: BSD
 Group: Applications/Multimedia
 URL: http://code.google.com/p/redis/
